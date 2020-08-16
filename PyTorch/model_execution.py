@@ -4,6 +4,8 @@ from PIL import Image
 import torch
 import torch.nn.functional as F
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 labelMap = ([0,0,0],
             [0,255,0],
             [0,0,255],
@@ -48,9 +50,10 @@ if deltaX > 0 or deltaY > 0:
 inputArray = np.asarray(inputImg)
 inputArray = (inputArray / 127.5) -1
 inputArray = inputArray.transpose((2,0,1))
-inputTensor = torch.as_tensor(inputArray,dtype=torch.float)
+inputTensor = torch.as_tensor(inputArray,dtype=torch.float).to(device)
 inputTensor = inputTensor.unsqueeze(0)
-model = torch.jit.load("facesegmentation.pt")
+model = torch.jit.load("facesegmentation.pt").to(device)
+model.eval()
 output = model(inputTensor)
 pred = F.softmax(output,dim=1)
 numpy_data = pred[0].detach().cpu().numpy()
